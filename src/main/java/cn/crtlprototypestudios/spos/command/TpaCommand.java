@@ -115,7 +115,7 @@ public class TpaCommand {
                 return 1;
             }
 
-            TeleportManager.createRequest(player.getUUID(), target.getUUID(), true);
+            TeleportManager.createRequest(player.getUUID(), target.getUUID(), true, player.serverLevel());
             source.sendSuccess(() -> LocalizationHelper.getComponent("tpa.request_sent", target.getName()), false);
             target.sendSystemMessage(LocalizationHelper.getComponent("tpa.request_received", player.getName()));
             return 1;
@@ -155,7 +155,7 @@ public class TpaCommand {
                 continue;
             }
 
-            TeleportManager.createRequest(player.getUUID(), target.getUUID(), false);
+            TeleportManager.createRequest(player.getUUID(), target.getUUID(), false, player.serverLevel());
             target.sendSystemMessage(LocalizationHelper.getComponent("tpa.request_received.from", player.getName()));
             successCount++;
         }
@@ -205,7 +205,7 @@ public class TpaCommand {
             return 0;
         }
 
-        TeleportManager.removeRequest(target.getUUID());
+        TeleportManager.removeRequest(target.getUUID(), player.serverLevel());
         source.sendSuccess(() -> LocalizationHelper.getComponent("tpa.cancelled", target.getName()), false);
         target.sendSystemMessage(LocalizationHelper.getComponent("tpa.request_cancelled", player.getName()));
         return 1;
@@ -249,7 +249,7 @@ public class TpaCommand {
         }
 
         TeleportRequest req = request.get();
-        TeleportManager.removeRequest(player.getUUID());
+        TeleportManager.removeRequest(player.getUUID(), player.serverLevel());
 
         if (req.isToRequest()) {
             TeleportManager.teleport(requester, TeleportManager.Location.fromEntity(player));
@@ -299,7 +299,7 @@ public class TpaCommand {
             return 0;
         }
 
-        TeleportManager.removeRequest(player.getUUID());
+        TeleportManager.removeRequest(player.getUUID(), player.serverLevel());
         source.sendSuccess(() -> LocalizationHelper.getComponent("tpa.denied", requester.getName()), false);
         requester.sendSystemMessage(LocalizationHelper.getComponent("tpa.request_denied", player.getName()));
         return 1;

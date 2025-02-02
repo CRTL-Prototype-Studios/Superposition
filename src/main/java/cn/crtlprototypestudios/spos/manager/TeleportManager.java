@@ -1,8 +1,10 @@
 package cn.crtlprototypestudios.spos.manager;
 
 import cn.crtlprototypestudios.spos.data.TeleportRequest;
+import cn.crtlprototypestudios.spos.handler.PacketHandler;
 import cn.crtlprototypestudios.spos.handler.TeleportHandler;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -40,8 +42,31 @@ public class TeleportManager {
         }
     }
 
-    public static void createRequest(UUID from, UUID to, boolean isToRequest) {
-        activeRequests.put(to, new TeleportRequest(from, to, isToRequest));
+    public static void createRequest(UUID from, UUID to, boolean isToRequest, ServerLevel level) {
+        MinecraftServer server = level.getServer();
+        ServerPlayer targetPlayer = server.getPlayerList().getPlayer(to);
+        if (targetPlayer != null) {
+            TeleportRequest request = new TeleportRequest(from, to, isToRequest);
+            activeRequests.put(to, request);
+            PacketHandler.sendTpaRequest(
+                    targetPlayer,
+                    request.getId(), // Add an ID field to TeleportRequest
+                    Objects.requireNonNull(server.getPlayerList().getPlayer(from)).getGameProfile().getName(),
+                    isToRequest,
+                    System.currentTimeMillis() + 30000 // 30 seconds expiration
+            );
+        }
+    }
+
+    public static void removeRequest(UUID to, ServerLevel level) {
+        TeleportRequest request = activeRequests.remove(to);
+        if (request != null) {
+            MinecraftServer server = level.getServer();
+            ServerPlayer targetPlayer = server.getPlayerList().getPlayer(to);
+            if (targetPlayer != null) {
+                PacketHandler.sendTpaCancel(targetPlayer, request.getId());
+            }
+        }
     }
 
     public static Optional<TeleportRequest> getRequest(UUID to) {
@@ -51,10 +76,6 @@ public class TeleportManager {
             return Optional.empty();
         }
         return Optional.ofNullable(request);
-    }
-
-    public static void removeRequest(UUID to) {
-        activeRequests.remove(to);
     }
 
     public static void saveLastLocation(ServerPlayer player) {

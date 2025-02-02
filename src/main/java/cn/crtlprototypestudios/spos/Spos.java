@@ -3,6 +3,7 @@ package cn.crtlprototypestudios.spos;
 import cn.crtlprototypestudios.spos.command.BackCommand;
 import cn.crtlprototypestudios.spos.command.SpawnCommand;
 import cn.crtlprototypestudios.spos.command.TpaCommand;
+import cn.crtlprototypestudios.spos.handler.PacketHandler;
 import cn.crtlprototypestudios.spos.manager.tpa.TpaManager;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
@@ -60,6 +61,7 @@ public class Spos {
     private void commonSetup(final FMLCommonSetupEvent event) {
         // Some common setup code
         LOGGER.info("HELLO FROM COMMON SETUP");
+        PacketHandler.register();
 
         event.enqueueWork(() -> {
             TpaManager.getInstance().load();
