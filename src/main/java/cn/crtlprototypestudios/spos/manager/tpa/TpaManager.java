@@ -112,6 +112,13 @@ public class TpaManager extends BaseJsonManager<TpaData> {
                 .map(UUID::fromString)
                 .collect(Collectors.toSet());
     }
+
+    public Optional<UUID> getLatestSentRequest(UUID playerUUID) {
+        return TeleportManager.getAllRequests().stream()
+                .filter(request -> request.getFrom().equals(playerUUID))
+                .map(TeleportRequest::getTo)
+                .findFirst();
+    }
 }
 
 

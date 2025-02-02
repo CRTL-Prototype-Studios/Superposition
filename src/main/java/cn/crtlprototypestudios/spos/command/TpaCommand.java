@@ -1,6 +1,7 @@
 package cn.crtlprototypestudios.spos.command;
 
 import cn.crtlprototypestudios.spos.Config;
+import cn.crtlprototypestudios.spos.Spos;
 import cn.crtlprototypestudios.spos.data.TeleportRequest;
 import cn.crtlprototypestudios.spos.manager.TeleportManager;
 import cn.crtlprototypestudios.spos.manager.tpa.TpaManager;
@@ -69,6 +70,12 @@ public class TpaCommand {
                         .then(Commands.literal("set")
                                 .then(Commands.argument("players", EntityArgument.players())
                                         .executes(context -> modifySettings(context.getSource(), EntityArgument.getPlayers(context, "players"), false, SettingAction.SET))))));
+
+        dispatcher.register(Commands.literal("tpacancel")
+                .executes(context -> cancelLatest(context.getSource()))
+                .then(Commands.argument("players", EntityArgument.players())
+                        .executes(context -> cancelMultiple(context.getSource(), EntityArgument.getPlayers(context, "players")))));
+
     }
 
     private enum SettingAction {
@@ -76,41 +83,46 @@ public class TpaCommand {
     }
 
     private static int tpaTo(CommandSourceStack source, ServerPlayer target) throws CommandSyntaxException {
-        if (!Config.allowCommandTpa) {
-            source.sendFailure(LocalizationHelper.getComponent("command.disabled"));
-            return 0;
-        }
+        try {
+            if (!Config.allowCommandTpa) {
+                source.sendFailure(LocalizationHelper.getComponent("command.disabled"));
+                return 0;
+            }
 
-        ServerPlayer player = source.getPlayerOrException();
-        if (player.getUUID().equals(target.getUUID())) {
-            source.sendFailure(LocalizationHelper.getComponent("tpa.self"));
-            return 0;
-        }
+            ServerPlayer player = source.getPlayerOrException();
+            if (player.getUUID().equals(target.getUUID())) {
+                source.sendFailure(LocalizationHelper.getComponent("tpa.self"));
+                return 0;
+            }
 
-        if (TpaManager.getInstance().isAlwaysDenied(player.getUUID(), target.getUUID())) {
-            source.sendFailure(LocalizationHelper.getComponent("tpa.always_denied"));
-            return 0;
-        }
+            if (TpaManager.getInstance().isAlwaysDenied(player.getUUID(), target.getUUID())) {
+                source.sendFailure(LocalizationHelper.getComponent("tpa.always_denied"));
+                return 0;
+            }
 
-        // Check if there's already an active request
-        Optional<TeleportRequest> existingRequest = TeleportManager.getRequest(target.getUUID());
-        if (existingRequest.isPresent() && existingRequest.get().getFrom().equals(player.getUUID())) {
-            source.sendFailure(LocalizationHelper.getComponent("tpa.request_pending"));
-            return 0;
-        }
+            // Check if there's already an active request
+            Optional<TeleportRequest> existingRequest = TeleportManager.getRequest(target.getUUID());
+            if (existingRequest.isPresent() && existingRequest.get().getFrom().equals(player.getUUID())) {
+                source.sendFailure(LocalizationHelper.getComponent("tpa.request_pending"));
+                return 0;
+            }
 
-        if (TpaManager.getInstance().isAlwaysAllowed(player.getUUID(), target.getUUID())) {
-            // Auto-accept if player is in always-allow list
-            TeleportManager.Location destination = TeleportManager.Location.fromEntity(target);
-            TeleportManager.teleport(player, destination);
-            target.sendSystemMessage(LocalizationHelper.getComponent("tpa.auto_accepted", player.getName()));
+            if (TpaManager.getInstance().isAlwaysAllowed(player.getUUID(), target.getUUID())) {
+                // Auto-accept if player is in always-allow list
+                TeleportManager.Location destination = TeleportManager.Location.fromEntity(target);
+                TeleportManager.teleport(player, destination);
+                target.sendSystemMessage(LocalizationHelper.getComponent("tpa.auto_accepted", player.getName()));
+                return 1;
+            }
+
+            TeleportManager.createRequest(player.getUUID(), target.getUUID(), true);
+            source.sendSuccess(() -> LocalizationHelper.getComponent("tpa.request_sent", target.getName()), false);
+            target.sendSystemMessage(LocalizationHelper.getComponent("tpa.request_received", player.getName()));
+            return 1;
+        } catch (Exception e) {
+            e.printStackTrace();
             return 1;
         }
-
-        TeleportManager.createRequest(player.getUUID(), target.getUUID(), true);
-        source.sendSuccess(() -> LocalizationHelper.getComponent("tpa.request_sent", target.getName()), false);
-        target.sendSystemMessage(LocalizationHelper.getComponent("tpa.request_received", player.getName()));
-        return 1;
     }
 
     private static int tpaHere(CommandSourceStack source, Collection<ServerPlayer> targets) throws CommandSyntaxException {
@@ -154,6 +166,49 @@ public class TpaCommand {
         }
 
         return successCount;
+    }
+
+    private static int cancelLatest(CommandSourceStack source) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        Optional<UUID> latestTarget = TpaManager.getInstance().getLatestSentRequest(player.getUUID());
+
+        if (latestTarget.isEmpty()) {
+            source.sendFailure(LocalizationHelper.getComponent("tpa.no_sent_request"));
+            return 0;
+        }
+
+        ServerPlayer target = source.getServer().getPlayerList().getPlayer(latestTarget.get());
+        if (target == null) {
+            source.sendFailure(LocalizationHelper.getComponent("tpa.target_offline"));
+            return 0;
+        }
+
+        return cancelRequest(source, player, target);
+    }
+
+    private static int cancelMultiple(CommandSourceStack source, Collection<ServerPlayer> targets) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        int successCount = targets.stream().mapToInt(target -> cancelRequest(source, player, target)).sum();
+
+        if (successCount > 0) {
+            source.sendSuccess(() -> LocalizationHelper.getComponent("tpa.cancelled.multiple", successCount), false);
+        }
+
+        return successCount;
+    }
+
+    private static int cancelRequest(CommandSourceStack source, ServerPlayer player, ServerPlayer target) {
+        Optional<TeleportRequest> request = TeleportManager.getRequest(target.getUUID());
+
+        if (request.isEmpty() || !request.get().getFrom().equals(player.getUUID())) {
+            source.sendFailure(LocalizationHelper.getComponent("tpa.no_sent_request.single", target.getName()));
+            return 0;
+        }
+
+        TeleportManager.removeRequest(target.getUUID());
+        source.sendSuccess(() -> LocalizationHelper.getComponent("tpa.cancelled", target.getName()), false);
+        target.sendSystemMessage(LocalizationHelper.getComponent("tpa.request_cancelled", player.getName()));
+        return 1;
     }
 
     private static int acceptLatest(CommandSourceStack source) throws CommandSyntaxException {

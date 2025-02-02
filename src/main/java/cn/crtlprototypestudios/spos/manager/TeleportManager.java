@@ -100,5 +100,9 @@ public class TeleportManager {
     public static void teleport(ServerPlayer player, Location location, boolean saveLastLocation) {
         TeleportHandler.scheduleTeleport(player, location, saveLastLocation);
     }
+
+    public static Collection<TeleportRequest> getAllRequests() {
+        return activeRequests.values();
+    }
 }
 
