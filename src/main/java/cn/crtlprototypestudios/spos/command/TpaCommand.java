@@ -245,8 +245,8 @@ public class TpaCommand {
         }
 
         TeleportManager.removeRequest(player.getUUID());
-        source.sendSuccess(() -> LocalizationHelper.getComponent("tpa.declined", requester.getName()), false);
-        requester.sendSystemMessage(LocalizationHelper.getComponent("tpa.request_declined", player.getName()));
+        source.sendSuccess(() -> LocalizationHelper.getComponent("tpa.denied", requester.getName()), false);
+        requester.sendSystemMessage(LocalizationHelper.getComponent("tpa.request_denied", player.getName()));
         return 1;
     }
 
