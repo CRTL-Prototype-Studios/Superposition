@@ -51,6 +51,7 @@ public class Spos {
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.addListener(this::onRegisterCommands);
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
         ctx.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
@@ -65,8 +66,7 @@ public class Spos {
         });
     }
 
-    @SubscribeEvent
-    public static void onRegisterCommands(RegisterCommandsEvent event) {
+    public void onRegisterCommands(RegisterCommandsEvent event) {
         TpaCommand.register(event.getDispatcher());
         BackCommand.register(event.getDispatcher());
         SpawnCommand.register(event.getDispatcher());

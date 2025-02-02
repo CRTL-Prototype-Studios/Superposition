@@ -26,19 +26,25 @@ public class BackCommand {
 
         ServerPlayer player = context.getSource().getPlayerOrException();
         Optional<TeleportManager.Location> lastLoc = TeleportManager.getLastLocation(player.getUUID());
+        Optional<TeleportManager.Location> deathLoc = TeleportManager.getDeathLocation(player.getUUID());
 
-        if (lastLoc.isEmpty()) {
-            Optional<TeleportManager.Location> deathLoc = TeleportManager.getDeathLocation(player.getUUID());
-            if (deathLoc.isEmpty() || !Config.allowDeathBack) {
+        if(deathLoc.isEmpty()) {
+            if (lastLoc.isEmpty()) {
                 context.getSource().sendFailure(LocalizationHelper.getComponent("back.no_location"));
                 return 0;
             }
-            TeleportManager.teleport(player, deathLoc.get());
+            TeleportManager.teleport(player, lastLoc.get(), false);
+            TeleportManager.clearLastLocation(player.getUUID());
         } else {
-            TeleportManager.teleport(player, lastLoc.get());
+            if (!Config.allowDeathBack) {
+                context.getSource().sendFailure(LocalizationHelper.getComponent("back.no_location"));
+                return 0;
+            }
+            TeleportManager.teleport(player, deathLoc.get(), false);
+            TeleportManager.clearDeathLocation(player.getUUID());
         }
 
-        context.getSource().sendSuccess(() -> LocalizationHelper.getComponent("back.success"), false);
+//        context.getSource().sendSuccess(() -> LocalizationHelper.getComponent("back.success"), false);
         return 1;
     }
 }

@@ -19,6 +19,10 @@ import java.util.stream.Collectors;
 public class Config {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
+    private static final ForgeConfigSpec.BooleanValue ENABLE_TELEPORT_DELAY = BUILDER
+            .comment("Enable teleportation delay")
+            .define("enableTeleportDelay", true);
+
     private static final ForgeConfigSpec.IntValue STAY_STILL_DURATION = BUILDER
             .comment("Time in seconds a player needs to stand still before teleporting")
             .defineInRange("stayStillDuration", 3, 1, 10);
@@ -42,6 +46,7 @@ public class Config {
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
     public static int stayStillDuration;
+    public static boolean enableTeleportDelay;
     public static boolean allowDeathBack;
     public static boolean allowCommandTpa;
     public static boolean allowCommandBack;
@@ -50,6 +55,7 @@ public class Config {
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
         stayStillDuration = STAY_STILL_DURATION.get();
+        enableTeleportDelay = ENABLE_TELEPORT_DELAY.get();
         allowDeathBack = ALLOW_DEATH_BACK.get();
         allowCommandTpa = ALLOW_COMMAND_TPA.get();
         allowCommandBack = ALLOW_COMMAND_BACK.get();

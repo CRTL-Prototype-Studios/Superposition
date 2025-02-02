@@ -16,6 +16,7 @@
   "spos.tpa.always_allow_set": "Set %d players to always allow.",
   "spos.tpa.always_decline_set": "Set %d players to always decline.",
   "spos.tpa.auto_accepted": "%s's request was automatically accepted.",
+  "spos.teleport.instant": "Teleported!",
   "spos.teleport.wait": "Don't move for %d seconds...",
   "spos.teleport.cancelled": "Teleport cancelled - you moved!",
   "spos.teleport.success": "Teleported!"

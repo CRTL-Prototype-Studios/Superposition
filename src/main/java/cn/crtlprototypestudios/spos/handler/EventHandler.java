@@ -4,6 +4,7 @@ import cn.crtlprototypestudios.spos.Spos;
 import cn.crtlprototypestudios.spos.manager.TeleportManager;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityMountEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -38,6 +39,31 @@ public class EventHandler {
         // Clean up when player logs out
         if (event.getEntity() instanceof ServerPlayer player) {
             TeleportHandler.cancelPendingTeleport(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        // Cancel any pending teleports when player respawns
+        if (event.getEntity() instanceof ServerPlayer player) {
+            TeleportHandler.cancelPendingTeleport(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerStartRiding(EntityMountEvent event) {
+        // Optional: Cancel teleport if player starts riding an entity
+        if (event.getEntityMounting() instanceof ServerPlayer player && !event.isCanceled()) {
+            TeleportHandler.cancelPendingTeleport(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
+        // Optional: Clean up any expired teleport requests periodically
+        if (event.phase == TickEvent.Phase.END && event.getServer().getTickCount() % 20 == 0) {
+            // Add a cleanup method in TeleportHandler if you want to use this
+            // TeleportHandler.cleanupExpiredRequests();
         }
     }
 }

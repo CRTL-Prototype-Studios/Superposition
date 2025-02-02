@@ -67,7 +67,7 @@ public class TpaCommand {
         if (TpaManager.getInstance().isAlwaysAllowed(player.getUUID(), target.getUUID())) {
             // Auto-accept if player is in always-allow list
             TeleportManager.Location destination = TeleportManager.Location.fromEntity(target);
-            TeleportHandler.scheduleTeleport(player, destination);
+            TeleportManager.teleport(player, destination);
             target.sendSystemMessage(LocalizationHelper.getComponent("tpa.auto_accepted", player.getName()));
             return 1;
         }
@@ -123,10 +123,10 @@ public class TpaCommand {
 
         if (req.isToRequest()) {
             // Requester wants to teleport to accepter
-            TeleportHandler.scheduleTeleport(fromPlayer, TeleportManager.Location.fromEntity(player));
+            TeleportManager.teleport(fromPlayer, TeleportManager.Location.fromEntity(player));
         } else {
             // Requester wants accepter to teleport to them
-            TeleportHandler.scheduleTeleport(player, TeleportManager.Location.fromEntity(fromPlayer));
+            TeleportManager.teleport(player, TeleportManager.Location.fromEntity(fromPlayer));
         }
 
         source.sendSuccess(() -> LocalizationHelper.getComponent("tpa.accepted", requester.getName()), false);

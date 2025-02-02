@@ -1,6 +1,7 @@
 package cn.crtlprototypestudios.spos.manager;
 
 import cn.crtlprototypestudios.spos.data.TeleportRequest;
+import cn.crtlprototypestudios.spos.handler.TeleportHandler;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -72,12 +73,32 @@ public class TeleportManager {
         return Optional.ofNullable(deathLocations.get(player));
     }
 
-    public static void teleport(ServerPlayer player, Location location) {
-        saveLastLocation(player);
+    public static Location clearLastLocation(UUID player) {
+        return lastLocations.remove(player);
+    }
+
+    public static Location clearDeathLocation(UUID player) {
+        return deathLocations.remove(player);
+    }
+
+    public static void teleportInstant(ServerPlayer player, Location location) {
+        teleportInstant(player, location, true);
+    }
+
+    public static void teleportInstant(ServerPlayer player, Location location, boolean saveLastLocation) {
+        if (saveLastLocation) saveLastLocation(player);
         ServerLevel targetLevel = Objects.requireNonNull(player.getServer()).getLevel(location.dimension);
         if (targetLevel != null) {
             player.teleportTo(targetLevel, location.x, location.y, location.z, location.yRot, location.xRot);
         }
+    }
+
+    public static void teleport(ServerPlayer player, Location location) {
+        teleport(player, location, true);
+    }
+
+    public static void teleport(ServerPlayer player, Location location, boolean saveLastLocation) {
+        TeleportHandler.scheduleTeleport(player, location, saveLastLocation);
     }
 }
 

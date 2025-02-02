@@ -17,32 +17,34 @@ public class TeleportHandler {
     private static class TeleportTask {
         final TeleportManager.Location destination;
         final Vec3 originalPosition;
-        final int taskId;
+        final boolean saveLastLocation;
+        final long scheduledTime;
 
-        TeleportTask(TeleportManager.Location destination, Vec3 originalPosition, int taskId) {
+        TeleportTask(TeleportManager.Location destination, Vec3 originalPosition, boolean saveLastLocation) {
             this.destination = destination;
             this.originalPosition = originalPosition;
-            this.taskId = taskId;
+            this.saveLastLocation = saveLastLocation;
+            this.scheduledTime = System.currentTimeMillis() + (Config.stayStillDuration * 1000L);
+        }
+
+        boolean isTimeToTeleport() {
+            return System.currentTimeMillis() >= scheduledTime;
         }
     }
 
-    public static void scheduleTeleport(ServerPlayer player, TeleportManager.Location destination) {
+    public static void scheduleTeleport(ServerPlayer player, TeleportManager.Location destination, boolean saveLastLocation) {
+        if (!Config.enableTeleportDelay) {
+            // Instant teleport if delay is disabled
+            TeleportManager.teleportInstant(player, destination);
+            player.sendSystemMessage(LocalizationHelper.getComponent("teleport.success"));
+            return;
+        }
+
         cancelPendingTeleport(player);
 
         Vec3 originalPos = player.position();
-        int taskId = player.getServer().getTickCount();
-
-        pendingTeleports.put(player.getUUID(), new TeleportTask(destination, originalPos, taskId));
-
+        pendingTeleports.put(player.getUUID(), new TeleportTask(destination, originalPos, saveLastLocation));
         player.sendSystemMessage(LocalizationHelper.getComponent("teleport.wait", Config.stayStillDuration));
-
-        // Schedule the actual teleport
-        player.getServer().tell(new TickTask(player.getServer().getTickCount() + (Config.stayStillDuration * 20), () -> {
-            if (checkAndRemoveTeleportTask(player, taskId)) {
-                TeleportManager.teleport(player, destination);
-                player.sendSystemMessage(LocalizationHelper.getComponent("teleport.success"));
-            }
-        }));
     }
 
     public static void cancelPendingTeleport(ServerPlayer player) {
@@ -56,17 +58,13 @@ public class TeleportHandler {
             if (hasPlayerMoved(currentPos, task.originalPosition)) {
                 cancelPendingTeleport(player);
                 player.sendSystemMessage(LocalizationHelper.getComponent("teleport.cancelled"));
+            } else if (task.isTimeToTeleport()) {
+                // Time to teleport!
+                pendingTeleports.remove(player.getUUID());
+                TeleportManager.teleportInstant(player, task.destination, task.saveLastLocation);
+                player.sendSystemMessage(LocalizationHelper.getComponent("teleport.success"));
             }
         }
-    }
-
-    private static boolean checkAndRemoveTeleportTask(ServerPlayer player, int taskId) {
-        TeleportTask task = pendingTeleports.get(player.getUUID());
-        if (task != null && task.taskId == taskId) {
-            pendingTeleports.remove(player.getUUID());
-            return true;
-        }
-        return false;
     }
 
     private static boolean hasPlayerMoved(Vec3 current, Vec3 original) {

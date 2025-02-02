@@ -43,7 +43,7 @@ public class SpawnCommand {
                 0
         );
 
-        TeleportHandler.scheduleTeleport(player, spawnLocation);
+        TeleportManager.teleport(player, spawnLocation);
         return 1;
     }
 }
