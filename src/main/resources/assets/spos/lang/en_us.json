@@ -1,0 +1,22 @@
+{
+  "spos.command.disabled": "This command is currently disabled.",
+  "spos.tpa.self": "You cannot send a teleport request to yourself.",
+  "spos.tpa.always_declined": "This player has chosen to automatically decline your teleport requests.",
+  "spos.tpa.request_pending": "You already have a pending request to this player.",
+  "spos.tpa.request_sent": "Teleport request sent to %s.",
+  "spos.tpa.request_sent_from": "Teleport request sent to %s to teleport them to you.",
+  "spos.tpa.request_received": "%s has requested to teleport to you. Use /tpa accept %s to accept.",
+  "spos.tpa.request_received_from": "%s has requested to teleport you to them. Use /tpa accept %s to accept.",
+  "spos.tpa.no_request": "You don't have any pending teleport requests from %s.",
+  "spos.tpa.player_offline": "The requesting player is no longer online.",
+  "spos.tpa.accepted": "You accepted %s's teleport request.",
+  "spos.tpa.request_accepted": "%s accepted your teleport request.",
+  "spos.tpa.declined": "You declined %s's teleport request.",
+  "spos.tpa.request_declined": "%s declined your teleport request.",
+  "spos.tpa.always_allow_set": "Set %d players to always allow.",
+  "spos.tpa.always_decline_set": "Set %d players to always decline.",
+  "spos.tpa.auto_accepted": "%s's request was automatically accepted.",
+  "spos.teleport.wait": "Don't move for %d seconds...",
+  "spos.teleport.cancelled": "Teleport cancelled - you moved!",
+  "spos.teleport.success": "Teleported!"
+}
