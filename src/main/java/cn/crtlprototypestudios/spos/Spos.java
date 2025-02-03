@@ -3,6 +3,7 @@ package cn.crtlprototypestudios.spos;
 import cn.crtlprototypestudios.spos.command.BackCommand;
 import cn.crtlprototypestudios.spos.command.SpawnCommand;
 import cn.crtlprototypestudios.spos.command.TpaCommand;
+import cn.crtlprototypestudios.spos.command.WaypointCommand;
 import cn.crtlprototypestudios.spos.handler.PacketHandler;
 import cn.crtlprototypestudios.spos.manager.tpa.TpaManager;
 import com.mojang.logging.LogUtils;
@@ -72,6 +73,7 @@ public class Spos {
         TpaCommand.register(event.getDispatcher());
         BackCommand.register(event.getDispatcher());
         SpawnCommand.register(event.getDispatcher());
+        WaypointCommand.register(event.getDispatcher());
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
