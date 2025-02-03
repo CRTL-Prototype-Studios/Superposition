@@ -1,8 +1,11 @@
 package cn.crtlprototypestudios.spos.manager;
 
+import cn.crtlprototypestudios.spos.Config;
 import cn.crtlprototypestudios.spos.data.TeleportRequest;
 import cn.crtlprototypestudios.spos.handler.PacketHandler;
 import cn.crtlprototypestudios.spos.handler.TeleportHandler;
+import cn.crtlprototypestudios.spos.utility.LocalizationHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -42,11 +45,39 @@ public class TeleportManager {
         }
     }
 
+    public static void tick(MinecraftServer server) {
+        Iterator<Map.Entry<UUID, TeleportRequest>> it = activeRequests.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, TeleportRequest> entry = it.next();
+            TeleportRequest request = entry.getValue();
+
+            if (request.isExpired()) {
+                // Get the players involved
+                ServerPlayer requester = server.getPlayerList().getPlayer(request.getFrom());
+                ServerPlayer target = server.getPlayerList().getPlayer(request.getTo());
+
+                // Send expiration notifications
+                if (requester != null) {
+                    if(target != null)
+                        requester.sendSystemMessage(LocalizationHelper.getComponent("tpa.sent_request_expired", target.getName()));
+                }
+                if (target != null) {
+                    if(requester != null)
+                        target.sendSystemMessage(LocalizationHelper.getComponent("tpa.receiving_request_expired", requester.getName()));
+                    PacketHandler.sendTpaCancel(target, request.getId());
+                }
+
+                // Remove the expired request
+                it.remove();
+            }
+        }
+    }
+
     public static void createRequest(UUID from, UUID to, boolean isToRequest, ServerLevel level) {
         MinecraftServer server = level.getServer();
         ServerPlayer targetPlayer = server.getPlayerList().getPlayer(to);
         if (targetPlayer != null) {
-            TeleportRequest request = new TeleportRequest(from, to, isToRequest);
+            TeleportRequest request = new TeleportRequest(from, to, isToRequest, Config.tpaRequestExpirationTime);
             activeRequests.put(to, request);
             PacketHandler.sendTpaRequest(
                     targetPlayer,

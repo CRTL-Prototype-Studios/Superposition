@@ -8,18 +8,19 @@ public class TeleportRequest {
     private final UUID to;
     private final boolean isToRequest; // true for /tpa to, false for /tpa from
     private final long timestamp;
-    private static final long EXPIRY_TIME = 120000; // 2 minutes in milliseconds
+    private final long expirationTime;
 
-    public TeleportRequest(UUID from, UUID to, boolean isToRequest) {
+    public TeleportRequest(UUID from, UUID to, boolean isToRequest, long expirationTime) {
         this.from = from;
         this.to = to;
         this.isToRequest = isToRequest;
         this.timestamp = System.currentTimeMillis();
         this.id = UUID.randomUUID();
+        this.expirationTime = expirationTime;
     }
 
     public boolean isExpired() {
-        return System.currentTimeMillis() - timestamp > EXPIRY_TIME;
+        return System.currentTimeMillis() - timestamp > expirationTime * 1000L;
     }
 
     // Getters
@@ -28,5 +29,9 @@ public class TeleportRequest {
     public boolean isToRequest() { return isToRequest; }
 
     public UUID getId() {return id;}
+
+    public long getExpirationTime() {
+        return expirationTime;
+    }
 }
 

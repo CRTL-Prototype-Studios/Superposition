@@ -27,6 +27,8 @@
   "spos.tpa.cancelled": "Cancelled teleport request to %s",
   "spos.tpa.cancelled.multiple": "Cancelled %d teleport requests",
   "spos.tpa.request_cancelled": "%s cancelled their teleport request",
+  "spos.tpa.receiving_request_expired": "Incoming teleport request from %s has expired",
+  "spos.tpa.sent_request_expired": "Your teleport request to %s has expired",
   "spos.teleport.instant": "Teleported!",
   "spos.teleport.wait": "Don't move for %d seconds...",
   "spos.teleport.cancelled": "Teleport cancelled - you moved!",

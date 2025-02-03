@@ -1,6 +1,7 @@
 package cn.crtlprototypestudios.spos.client.gui;
 
 import cn.crtlprototypestudios.spos.Spos;
+import cn.crtlprototypestudios.spos.client.slateui.*;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,111 +18,120 @@ import java.util.UUID;
 
 @OnlyIn(Dist.CLIENT)
 public class TpaNotificationOverlay {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Spos.MODID, "textures/gui/tpa_notifications.png");
-    private static final List<TpaToast> activeToasts = new ArrayList<>();
-    private static final int TOAST_WIDTH = 200;
-    private static final int TOAST_HEIGHT = 40;
+    private static final UIContainer container = new UIContainer(0, 0, 0, 0);
+    private static final int TOAST_SPACING = 45;
 
-    public static void render(GuiGraphics guiGraphics, float partialTick) {
-        if (activeToasts.isEmpty()) return;
-
-        int x = Minecraft.getInstance().getWindow().getGuiScaledWidth() - TOAST_WIDTH - 10;
-        int y = 10;
-
-        Iterator<TpaToast> iterator = activeToasts.iterator();
-        while (iterator.hasNext()) {
-            TpaToast toast = iterator.next();
-            if (toast.isExpired()) {
-                iterator.remove();
-                continue;
-            }
-
-            toast.render(guiGraphics, x, y);
-            y += TOAST_HEIGHT + 5;
-        }
-    }
-
-    public static void addRequest(UUID requestId, String requesterName, boolean isToRequest, long expirationTime) {
-        activeToasts.add(new TpaToast(requestId, requesterName, isToRequest, expirationTime));
-    }
-
-    public static void removeRequest(UUID requestId) {
-        activeToasts.removeIf(toast -> toast.getRequestId().equals(requestId));
+    public static void render(GuiGraphics graphics, float partialTick) {
+        container.render(graphics, 0, 0, partialTick);
     }
 
     public static boolean handleClick(double mouseX, double mouseY) {
-        int x = Minecraft.getInstance().getWindow().getGuiScaledWidth() - TOAST_WIDTH - 10;
-        int y = 10;
-
-        for (TpaToast toast : activeToasts) {
-            if (toast.onClick(mouseX, mouseY, x, y)) {
-                return true;
+        for (UIComponent child : container.getChildren()) {
+            if (child instanceof Toast toast) {
+                for (UIComponent button : toast.getChildren()) {
+                    if (button instanceof ToastButton toastButton) {
+                        if (toastButton.isHovered(mouseX, mouseY)) {
+                            return toastButton.mouseClicked(mouseX, mouseY, 0);
+                        }
+                    }
+                }
             }
-            y += TOAST_HEIGHT + 5;
         }
         return false;
     }
 
-    private static class TpaToast {
-        private final UUID requestId;
-        private final String requesterName;
-        private final boolean isToRequest;
-        private final long expirationTime;
+    public static void addRequest(UUID requestId, String requesterName, boolean isToRequest, long expirationTime) {
+        int x = Minecraft.getInstance().getWindow().getGuiScaledWidth() - 210;
+        int y = 10 + container.getChildren().size() * TOAST_SPACING;
 
-        public TpaToast(UUID requestId, String requesterName, boolean isToRequest, long expirationTime) {
-            this.requestId = requestId;
-            this.requesterName = requesterName;
-            this.isToRequest = isToRequest;
-            this.expirationTime = expirationTime;
-        }
+        Component message = Component.literal(requesterName + (isToRequest ?
+                " wants to teleport to you" :
+                " wants you to teleport to them"));
 
-        public void render(GuiGraphics guiGraphics, int x, int y) {
-            // Background
-            RenderSystem.setShader(GameRenderer::getPositionTexShader);
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            RenderSystem.setShaderTexture(0, TEXTURE);
-            guiGraphics.blit(TEXTURE, x, y, 0, 0, TOAST_WIDTH, TOAST_HEIGHT);
+        Toast toast = new Toast(x, y, message, 30000);
 
-            // Progress bar
-            float progress = ((expirationTime - System.currentTimeMillis()) / 30000.0F);
-            int progressWidth = (int) (TOAST_WIDTH * progress);
-            guiGraphics.fill(x, y, x + progressWidth, y + 2, 0xFFFFFFFF);
-
-            // Message
-            String message = isToRequest ?
-                    requesterName + " wants to teleport to you" :
-                    requesterName + " wants you to teleport to them";
-            guiGraphics.drawString(Minecraft.getInstance().font, message, x + 10, y + 10, 0xFFFFFFFF);
-
-            // Buttons
-            guiGraphics.fill(x, y + TOAST_HEIGHT - 15, x + TOAST_WIDTH/2 - 1, y + TOAST_HEIGHT - 5, 0xFFFFFFFF);
-            guiGraphics.fill(x + TOAST_WIDTH/2 + 1, y + TOAST_HEIGHT - 15, x + TOAST_WIDTH, y + TOAST_HEIGHT - 5, 0x80000000);
-
-            guiGraphics.drawCenteredString(Minecraft.getInstance().font, "Accept", x + TOAST_WIDTH/4, y + TOAST_HEIGHT - 12, 0x00000000);
-            guiGraphics.drawCenteredString(Minecraft.getInstance().font, "Deny", x + TOAST_WIDTH*3/4, y + TOAST_HEIGHT - 12, 0xFFFFFFFF);
-        }
-
-        public boolean onClick(double mouseX, double mouseY, int x, int y) {
-            if (mouseY >= y + TOAST_HEIGHT - 20 && mouseY < y + TOAST_HEIGHT) {
-                if (mouseX >= x && mouseX < x + TOAST_WIDTH/2) {
+        // Accept button
+        ToastButton acceptButton = new ToastButton(
+                x, y + 30, 100, 20,
+                Component.literal("Accept"),
+                button -> {
                     assert Minecraft.getInstance().player != null;
                     Minecraft.getInstance().player.connection.sendCommand("tpaccept " + requesterName);
-                    return true;
-                } else if (mouseX >= x + TOAST_WIDTH/2 && mouseX < x + TOAST_WIDTH) {
+                    toast.startExitAnimation(() -> container.removeChild(toast));
+                }
+        );
+
+        // Deny button
+        ToastButton denyButton = new ToastButton(
+                x + 100, y + 30, 100, 20,
+                Component.literal("Deny"),
+                button -> {
                     assert Minecraft.getInstance().player != null;
                     Minecraft.getInstance().player.connection.sendCommand("tpadeny " + requesterName);
-                    return true;
+                    toast.startExitAnimation(() -> container.removeChild(toast));
                 }
+        );
+
+        toast.addButton(acceptButton);
+        toast.addButton(denyButton);
+        container.addChild(toast);
+    }
+
+
+
+    public static void removeRequest(UUID requestId) {
+        container.getChildren().stream()
+                .filter(child -> child instanceof Toast)
+                .findFirst()
+                .ifPresent(toast -> ((Toast) toast).startExitAnimation(() -> {
+                    container.removeChild(toast);
+                    repositionRemainingToasts();
+                }));
+    }
+
+    public static void tick() {
+        container.tick();
+
+        // Create a list of toasts to remove
+        List<UIComponent> toastsToRemove = new ArrayList<>();
+
+        // Check for expired toasts
+        for (UIComponent child : container.getChildren()) {
+            if (child instanceof Toast toast && toast.isExpired()) {
+                toast.startExitAnimation(() -> {
+                    container.removeChild(toast);
+                    repositionRemainingToasts();
+                });
+                toastsToRemove.add(child);
             }
-            return false;
         }
 
-        public boolean isExpired() {
-            return System.currentTimeMillis() >= expirationTime;
-        }
+        // Remove the expired toasts
+        toastsToRemove.forEach(container::removeChild);
 
-        public UUID getRequestId() {
-            return requestId;
+        if (!toastsToRemove.isEmpty()) {
+            repositionRemainingToasts();
+        }
+    }
+
+    private static void repositionRemainingToasts() {
+        int y = 10;
+        for (UIComponent child : container.getChildren()) {
+            if (child instanceof Toast toast) {
+                final int targetY = y;
+                child.addAnimation(new UIAnimation(child, 0.3f) {
+                    private final int startY = child.getY();
+                    @Override
+                    protected void animate(float progress) {
+                        child.setY((int) (startY + (targetY - startY) * easeOutCubic(progress)));
+                    }
+                    private float easeOutCubic(float x) {
+                        return 1 - (float)Math.pow(1 - x, 3);
+                    }
+                });
+                y += TOAST_SPACING;
+            }
         }
     }
 }
+

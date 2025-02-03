@@ -28,5 +28,6 @@ public abstract class UIAnimation {
         return finished;
     }
 
+
     protected abstract void animate(float progress);
 }

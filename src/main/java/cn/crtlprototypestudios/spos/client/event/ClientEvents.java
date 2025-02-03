@@ -5,6 +5,7 @@ import cn.crtlprototypestudios.spos.client.gui.TpaNotificationOverlay;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -19,6 +20,13 @@ public class ClientEvents {
     public static void onMouseClick(ScreenEvent.MouseButtonPressed.Pre event) {
         if (TpaNotificationOverlay.handleClick(event.getMouseX(), event.getMouseY())) {
             event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) {
+            TpaNotificationOverlay.tick();
         }
     }
 }

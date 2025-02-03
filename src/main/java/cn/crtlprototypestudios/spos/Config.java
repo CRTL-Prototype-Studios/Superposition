@@ -23,6 +23,10 @@ public class Config {
             .comment("Enable teleportation delay")
             .define("enableTeleportDelay", true);
 
+    public static ForgeConfigSpec.IntValue TPA_REQUEST_EXPIRATION_TIME = BUILDER
+            .comment("Time in seconds before a teleport request expires")
+            .defineInRange("tpaRequestExpirationTime", 30, 5, 300);
+
     private static final ForgeConfigSpec.IntValue STAY_STILL_DURATION = BUILDER
             .comment("Time in seconds a player needs to stand still before teleporting")
             .defineInRange("stayStillDuration", 3, 1, 10);
@@ -46,6 +50,7 @@ public class Config {
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
     public static int stayStillDuration;
+    public static int tpaRequestExpirationTime;
     public static boolean enableTeleportDelay;
     public static boolean allowDeathBack;
     public static boolean allowCommandTpa;
@@ -55,6 +60,7 @@ public class Config {
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
         stayStillDuration = STAY_STILL_DURATION.get();
+        tpaRequestExpirationTime = TPA_REQUEST_EXPIRATION_TIME.get();
         enableTeleportDelay = ENABLE_TELEPORT_DELAY.get();
         allowDeathBack = ALLOW_DEATH_BACK.get();
         allowCommandTpa = ALLOW_COMMAND_TPA.get();

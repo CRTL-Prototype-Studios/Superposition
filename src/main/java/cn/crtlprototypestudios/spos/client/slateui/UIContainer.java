@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UIContainer extends UIComponent {
-    private List<UIAnimation> activeAnimations = new ArrayList<>();
 
     public UIContainer(int x, int y, int width, int height) {
         super(x, y, width, height);
@@ -18,17 +17,7 @@ public class UIContainer extends UIComponent {
         children.forEach(child -> child.render(graphics, mouseX, mouseY, partialTicks));
     }
 
-    public void addAnimation(UIAnimation animation) {
-        activeAnimations.add(animation);
-    }
-
-    @Override
-    public void tick() {
-        super.tick();
-        activeAnimations.removeIf(UIAnimation::update);
-    }
-
-    // Override addChild to ensure proper parent-child relationship
+    // Only one addChild override
     @Override
     public void addChild(UIComponent child) {
         super.addChild(child);
@@ -36,6 +25,12 @@ public class UIContainer extends UIComponent {
             // Ensure buttons inherit container properties
             child.alpha = this.alpha;
         }
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        activeAnimations.removeIf(UIAnimation::update);
     }
 }
 
