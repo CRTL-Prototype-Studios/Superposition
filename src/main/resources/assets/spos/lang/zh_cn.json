@@ -27,6 +27,8 @@
   "spos.tpa.cancelled": "Cancelled teleport request to %s",
   "spos.tpa.cancelled.multiple": "Cancelled %d teleport requests",
   "spos.tpa.request_cancelled": "%s cancelled their teleport request",
+  "spos.tpa.receiving_request_expired": "Incoming teleport request from %s has expired",
+  "spos.tpa.sent_request_expired": "Your teleport request to %s has expired",
   "spos.teleport.instant": "已传送！",
   "spos.teleport.wait": "请保持不动 %d 秒...",
   "spos.teleport.cancelled": "传送已取消 - 你移动了！",
