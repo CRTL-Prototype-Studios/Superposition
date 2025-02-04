@@ -45,7 +45,7 @@ public class WaypointManager extends BaseJsonManager<WaypointData> {
         }
 
         Waypoint waypoint = new Waypoint(
-                player.level().toString(),
+                player.level().dimension().location().toString(),
                 name,
                 player.getX(),
                 player.getY(),

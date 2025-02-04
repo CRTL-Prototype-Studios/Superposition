@@ -8,8 +8,10 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,6 +21,19 @@ import java.util.List;
 import java.util.Optional;
 
 public class WaypointCommand {
+    private static final SuggestionProvider<CommandSourceStack> SUGGEST_WAYPOINTS = (context, builder) -> {
+        try {
+            ServerPlayer player = context.getSource().getPlayerOrException();
+            List<Waypoint> waypoints = WaypointManager.getInstance().getAllWaypoints(player.getUUID());
+            return SharedSuggestionProvider.suggest(
+                    waypoints.stream().map(Waypoint::getName),
+                    builder
+            );
+        } catch (CommandSyntaxException e) {
+            return builder.buildFuture();
+        }
+    };
+
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("waypoint")
                 .then(Commands.literal("add")
@@ -26,12 +41,15 @@ public class WaypointCommand {
                                 .executes(context -> addWaypoint(context.getSource(), StringArgumentType.getString(context, "name")))))
                 .then(Commands.literal("remove")
                         .then(Commands.argument("name", StringArgumentType.word())
+                                .suggests(SUGGEST_WAYPOINTS) // Add suggestions here
                                 .executes(context -> removeWaypoint(context.getSource(), StringArgumentType.getString(context, "name")))))
                 .then(Commands.literal("goto")
                         .then(Commands.argument("name", StringArgumentType.word())
+                                .suggests(SUGGEST_WAYPOINTS) // Add suggestions here
                                 .executes(context -> gotoWaypoint(context.getSource(), StringArgumentType.getString(context, "name")))))
                 .then(Commands.literal("override")
                         .then(Commands.argument("name", StringArgumentType.word())
+                                .suggests(SUGGEST_WAYPOINTS) // Add suggestions here
                                 .executes(context -> overrideWaypoint(context.getSource(), StringArgumentType.getString(context, "name")))))
                 .then(Commands.literal("list")
                         .executes(WaypointCommand::listWaypoints)));
