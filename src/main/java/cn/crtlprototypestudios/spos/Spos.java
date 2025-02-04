@@ -6,6 +6,7 @@ import cn.crtlprototypestudios.spos.command.TpaCommand;
 import cn.crtlprototypestudios.spos.command.WaypointCommand;
 import cn.crtlprototypestudios.spos.handler.PacketHandler;
 import cn.crtlprototypestudios.spos.manager.tpa.TpaManager;
+import cn.crtlprototypestudios.spos.manager.waypoint.WaypointManager;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -66,6 +67,7 @@ public class Spos {
 
         event.enqueueWork(() -> {
             TpaManager.getInstance().load();
+            WaypointManager.getInstance().load();
         });
     }
 

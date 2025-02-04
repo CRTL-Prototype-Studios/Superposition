@@ -32,16 +32,21 @@ public abstract class BaseJsonManager<T> {
     public void load() {
         if (!saveFile.exists()) {
             saveFile.getParentFile().mkdirs();
-            save();
+            // Don't save immediately if file doesn't exist
+            data = new ArrayList<>();
             return;
         }
 
         try (Reader reader = new FileReader(saveFile)) {
             List<T> loadedData = gson.fromJson(reader, dataType);
-            data = loadedData != null ? loadedData : new ArrayList<>();
+            if (loadedData != null) {
+                data = loadedData;
+            } else {
+                data = new ArrayList<>();
+                Spos.LOGGER.warn("Loaded null data from " + saveFile.getName() + ", initializing empty list");
+            }
         } catch (IOException e) {
-            if(LOGGER != null)
-                LOGGER.error("Failed to load data from " + saveFile.getName(), e);
+            Spos.LOGGER.error("Failed to load data from " + saveFile.getName(), e);
             data = new ArrayList<>();
         }
     }
@@ -50,8 +55,7 @@ public abstract class BaseJsonManager<T> {
         try (Writer writer = new FileWriter(saveFile)) {
             gson.toJson(data, writer);
         } catch (IOException e) {
-            if(LOGGER != null)
-                LOGGER.error("Failed to save data to " + saveFile.getName(), e);
+            Spos.LOGGER.error("Failed to save data to " + saveFile.getName(), e);
         }
     }
 

@@ -75,7 +75,7 @@ public class WaypointCommand {
                 new ResourceLocation(wp.getWorld()));
 
         TeleportManager.Location location = new TeleportManager.Location(
-                dimension, wp.getX(), wp.getY(), wp.getZ(), wp.getYRot(), wp.getXRot()
+                dimension, wp.getX(), wp.getY(), wp.getZ(), 0, 0
         );
 
         TeleportManager.teleport(player, location);
