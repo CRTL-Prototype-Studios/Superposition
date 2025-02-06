@@ -40,5 +40,7 @@
   "spos.teleport.instant": "Teleported!",
   "spos.teleport.wait": "Don't move for %d seconds...",
   "spos.teleport.cancelled": "Teleport cancelled - you moved!",
-  "spos.teleport.success": "Teleported!"
+  "spos.teleport.success": "Teleported!",
+  "spos.text.accept": "Accept",
+  "spos.text.deny": "Deny"
 }

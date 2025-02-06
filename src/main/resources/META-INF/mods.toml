@@ -62,3 +62,10 @@ versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
 
+[[dependencies."${mod_id}"]]
+modId = "ovsr"
+mandatory = true
+# This version range declares a minimum of the current minecraft version up to but not including the next major version
+versionRange = "[0.1.2-release.f3,)"
+ordering = "AFTER"
+side = "CLIENT"

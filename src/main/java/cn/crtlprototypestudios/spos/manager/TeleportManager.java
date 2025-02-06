@@ -84,7 +84,7 @@ public class TeleportManager {
                     request.getId(), // Add an ID field to TeleportRequest
                     Objects.requireNonNull(server.getPlayerList().getPlayer(from)).getGameProfile().getName(),
                     isToRequest,
-                    System.currentTimeMillis() + 30000 // 30 seconds expiration
+                    System.currentTimeMillis() + Config.tpaRequestExpirationTime * 1000L
             );
         }
     }

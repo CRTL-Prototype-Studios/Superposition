@@ -1,5 +1,6 @@
 package cn.crtlprototypestudios.spos;
 
+import cn.crtlprototypestudios.spos.client.SposClient;
 import cn.crtlprototypestudios.spos.command.BackCommand;
 import cn.crtlprototypestudios.spos.command.SpawnCommand;
 import cn.crtlprototypestudios.spos.command.TpaCommand;
@@ -46,7 +47,8 @@ public class Spos {
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public Spos(final FMLJavaModLoadingContext ctx) {
+    public Spos() {
+        @SuppressWarnings("removal") final FMLJavaModLoadingContext ctx = FMLJavaModLoadingContext.get();
         IEventBus modEventBus = ctx.getModEventBus();
 
         // Register the commonSetup method for modloading
@@ -94,6 +96,7 @@ public class Spos {
             // Some client setup code
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+            SposClient.init(event);
         }
     }
 }

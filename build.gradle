@@ -161,7 +161,7 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
-//    implementation 'com.github.Type-32:OverseerUI:v0.1.1-release.f1'
+    implementation "com.github.Type-32:OverseerUI:v${project.overseer_version}"
 
 }
 

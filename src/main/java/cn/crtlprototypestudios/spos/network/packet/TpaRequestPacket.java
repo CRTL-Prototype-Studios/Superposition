@@ -1,6 +1,8 @@
 package cn.crtlprototypestudios.spos.network.packet;
 
-import cn.crtlprototypestudios.spos.client.gui.TpaNotificationOverlay;
+import cn.crtlprototypestudios.spos.Spos;
+import cn.crtlprototypestudios.spos.client.SposClient;
+import cn.crtlprototypestudios.spos.client.data.TpaNotification;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -39,12 +41,13 @@ public class TpaRequestPacket {
     public static void handle(TpaRequestPacket msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             // We're on the client
-            TpaNotificationOverlay.addRequest(
+            SposClient.TPA_NOTIF_HUD.addNotification(
+                    new TpaNotification(
                     msg.requestId,
                     msg.requesterName,
                     msg.isToRequest,
                     msg.expirationTime
-            );
+            ));
         });
         ctx.get().setPacketHandled(true);
     }

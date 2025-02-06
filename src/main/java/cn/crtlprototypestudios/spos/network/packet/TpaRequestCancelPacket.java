@@ -1,6 +1,7 @@
 package cn.crtlprototypestudios.spos.network.packet;
 
-import cn.crtlprototypestudios.spos.client.gui.TpaNotificationOverlay;
+import cn.crtlprototypestudios.spos.Spos;
+import cn.crtlprototypestudios.spos.client.SposClient;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -26,7 +27,7 @@ public class TpaRequestCancelPacket {
     public static void handle(TpaRequestCancelPacket msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             // We're on the client
-            TpaNotificationOverlay.removeRequest(msg.requestId);
+            SposClient.TPA_NOTIF_HUD.removeNotification(msg.requestId);
         });
         ctx.get().setPacketHandled(true);
     }
